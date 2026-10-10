@@ -1,0 +1,33 @@
+name: ZIP WordPress installable
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, libxml, mbstring
+          tools: none
+      - name: Vérifier
+        run: |
+          find . -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/smoke.php
+      - name: Préparer le ZIP
+        run: |
+          mkdir -p dist/dendrila-accessibility-assistant
+          cp dendrila-accessibility-assistant.php readme.txt LICENSE dist/dendrila-accessibility-assistant/
+          cp -R includes assets dist/dendrila-accessibility-assistant/
+          (cd dist && zip -q -r dendrila-accessibility-assistant.zip dendrila-accessibility-assistant)
+          unzip -Z -1 dist/dendrila-accessibility-assistant.zip | grep -q '^dendrila-accessibility-assistant/dendrila-accessibility-assistant.php$'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dendrila-accessibility-assistant-0.1.0-alpha
+          path: dist/dendrila-accessibility-assistant.zip
+          if-no-files-found: error
+          retention-days: 14
