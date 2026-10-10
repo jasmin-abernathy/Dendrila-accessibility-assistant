@@ -1,0 +1,38 @@
+name: Vérifications PHP
+on:
+  push:
+    paths:
+      - '*.php'
+      - 'includes/**'
+      - 'tests/**'
+      - '.github/workflows/checks.yml'
+  pull_request:
+    paths:
+      - '*.php'
+      - 'includes/**'
+      - 'tests/**'
+      - '.github/workflows/checks.yml'
+permissions:
+  contents: read
+concurrency:
+  group: access-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['8.1', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version }}
+          extensions: dom, libxml, mbstring
+          tools: none
+      - name: Syntaxe
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Tests métier
+        run: php tests/smoke.php
