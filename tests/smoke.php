@@ -28,7 +28,7 @@ function shortcode_parse_atts($raw) {
     foreach ($matches as $m) { $out[$m[1]] = $m[2]; }
     return $out;
 }
-function get_post($id) { return $GLOBALS['posts'][$id] ?? null; }
+function get_post($id) { if (!empty($GLOBALS['throw_post']) && (int)$id === (int)$GLOBALS['throw_post']) { throw new RuntimeException('Contenu temporairement inaccessible'); } return $GLOBALS['posts'][$id] ?? null; }
 function get_post_types($args, $mode) { return array('post', 'page', 'attachment'); }
 function get_posts($args) { return array_slice(array_keys($GLOBALS['posts']), 0, (int) $args['numberposts']); }
 function get_the_title($id) { return 'Article ' . $id; }
@@ -77,4 +77,14 @@ verify($batch['total_checked'] === 2, 'inventaire borné');
 verify(count($batch['posts']) === 2, 'résultats globaux');
 verify(DAA_Scanner::post(101)['incomplete'] === true, 'audit partiel visible');
 verify(DAA_Builders::divi(str_repeat('x', 1500001))['partial'] === true, 'limite de traitement Divi');
+$GLOBALS['throw_post'] = 101;
+$resilient = DAA_Scanner::batch();
+verify($resilient['completed'] === true && $resilient['progress'] === 100,
+    '100 pour cent décrit la fin du passage et non la couverture');
+verify($resilient['failed'] === 1 && $resilient['total_checked'] === 2,
+    'une page inaccessible est comptée sans arrêter le parcours');
+verify(count($resilient['posts']) === 2 &&
+    count(array_filter($resilient['posts'], static fn($row) => $row['status'] === 'ok')) === 1,
+    'le contenu suivant reste analysé');
+unset($GLOBALS['throw_post']);
 echo "Dendrila Accessibility Assistant : contrats OK\n";

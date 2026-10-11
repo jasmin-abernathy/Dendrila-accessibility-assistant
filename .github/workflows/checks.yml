@@ -36,3 +36,4 @@ jobs:
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Tests métier
         run: php tests/smoke.php
+          php tests/media.php

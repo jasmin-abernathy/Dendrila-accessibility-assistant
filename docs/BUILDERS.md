@@ -27,4 +27,4 @@ Conformément aux conventions déjà utilisées dans Dendrila Simple Edit, les c
 
 Créer une page de test Elementor (Image, Titre, Texte, Bouton), une Divi 4 (module Image) et une Divi 5 (module Image natif), conserver un export avant/après, lancer le diagnostic, puis vérifier que les données des constructeurs et le rendu n'ont pas changé. Comparer ensuite le DOM public avec les observations.
 
-Cette version ne cherche pas à corriger automatiquement les contenus ; elle pointe vers l'éditeur natif.
+Cette version ne cherche pas à corriger automatiquement les contenus des constructeurs ; elle pointe vers l'éditeur natif. Les médias créés par Divi et Elementor utilisent la médiathèque WordPress : leur enregistrement initial n'est pas bloqué, et ils restent à vérifier depuis le tableau de bord d'accessibilité. Ne pas forcer un champ texte alternatif non vide pour les images volontairement décoratives.

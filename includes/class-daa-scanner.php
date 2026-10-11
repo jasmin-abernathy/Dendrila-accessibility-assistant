@@ -58,24 +58,56 @@ final class DAA_Scanner
         $types = get_post_types(array('public' => true), 'names');
         $types = array_values(array_diff((array) $types, array('attachment')));
         if (!$types) {
-            return array('posts' => array(), 'partial' => false, 'total_checked' => 0);
+            return array('posts' => array(), 'partial' => false, 'total_checked' => 0,
+                'failed' => 0, 'incomplete' => 0, 'outside_limit' => 'none', 'progress' => 100, 'completed' => true);
         }
-        $ids = get_posts(array(
-            'post_type' => $types, 'post_status' => 'publish',
-            'numberposts' => self::MAX_POSTS + 1,
-            'orderby' => 'ID', 'order' => 'DESC',
-            'fields' => 'ids', 'suppress_filters' => true,
-        ));
-        $ids = is_array($ids) ? $ids : array();
+        try {
+            $ids = get_posts(array(
+                'post_type' => $types, 'post_status' => 'publish',
+                'numberposts' => self::MAX_POSTS + 1,
+                'orderby' => 'ID', 'order' => 'DESC',
+                'fields' => 'ids', 'suppress_filters' => true,
+            ));
+        } catch (Throwable $error) {
+            return array(
+                'posts' => array(), 'partial' => true, 'total_checked' => 0,
+                'failed' => 1, 'incomplete' => 0, 'outside_limit' => 'unknown',
+                'progress' => 100, 'completed' => true, 'scan_error' => true,
+            );
+        }
+        if (!is_array($ids)) {
+            return array(
+                'posts' => array(), 'partial' => true, 'total_checked' => 0,
+                'failed' => 1, 'incomplete' => 0, 'outside_limit' => 'unknown',
+                'progress' => 100, 'completed' => true, 'scan_error' => true,
+            );
+        }
         $partial = count($ids) > self::MAX_POSTS;
         $checked = array_slice($ids, 0, self::MAX_POSTS);
         $rows = array();
+        $failed = 0;
+        $incomplete = 0;
         foreach ($checked as $id) {
             $id = (int) $id;
-            $audit = self::post($id);
+            try {
+                $audit = self::post($id);
+                if (!in_array($audit['status'] ?? '', array('ok', 'too_large', 'unreadable', 'unsupported'), true)) {
+                    throw new RuntimeException('Contenu non disponible.');
+                }
+                if (!empty($audit['incomplete'])) { ++$incomplete; }
+            } catch (Throwable $error) {
+                // One broken content / builder must never abort the other pages.
+                ++$failed;
+                $audit = array('status' => 'error', 'issues' => array(), 'incomplete' => true, 'builders' => array());
+            }
+            try {
+                $title = (string) get_the_title($id);
+            } catch (Throwable $error) {
+                $title = 'Contenu #' . $id;
+            }
             $rows[] = array(
                 'id' => $id,
-                'title' => (string) get_the_title($id),
+                'title' => $title,
                 'count' => count($audit['issues']),
                 'issues' => array_slice($audit['issues'], 0, 8),
                 'status' => $audit['status'],
@@ -83,6 +115,16 @@ final class DAA_Scanner
                 'builders' => $audit['builders'] ?? array(),
             );
         }
-        return array('posts' => $rows, 'partial' => $partial, 'total_checked' => count($checked));
+        // Progress measures execution of the planned bounded pass, not site coverage.
+        return array(
+            'posts' => $rows,
+            'partial' => $partial,
+            'total_checked' => count($checked),
+            'failed' => $failed,
+            'incomplete' => $incomplete,
+            'outside_limit' => $partial ? 'at_least_one' : 'none',
+            'progress' => 100,
+            'completed' => true,
+        );
     }
 }

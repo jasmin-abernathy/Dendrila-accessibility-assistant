@@ -12,7 +12,9 @@ Aide à la correction éditoriale d'accessibilité sur WordPress, Elementor et D
 
 Dendrila Accessibility Assistant analyse en lecture seule des contenus WordPress enregistrés et fournit des conseils concrets en français.
 
-La première version détecte certains attributs alt absents, textes alternatifs semblables à des fichiers, champs sans nom accessible apparent, titres vides, sauts de niveaux, et liens/boutons sans libellé. Un panneau dans l'éditeur et un tableau de bord permettent d'ouvrir rapidement les contenus à revoir. Les analyses incomplètes (fichier de constructeur trop volumineux ou illisible) sont explicitement signalées.
+La première version détecte certains attributs alt absents, textes alternatifs semblables à des fichiers, champs sans nom accessible apparent, titres vides, sauts de niveaux, et liens/boutons sans libellé. Un panneau dans l'éditeur et un tableau de bord permettent d'ouvrir rapidement les contenus à revoir. Chaque passage va jusqu'à 100 % même si une page échoue ; un bilan séparé précise ce qui a été vérifié ou non.
+
+**Médiathèque** : explications supplémentaires pour texte alternatif, légende et description, et liste des images à compléter. Les nouvelles photos restent à vérifier après leur import ; la validation guidée oblige à choisir entre informative (texte alternatif requis) et décorative (texte vide accepté). Les anciens médias ne sont pas bloqués et peuvent être complétés progressivement. Les analyses incomplètes (fichier de constructeur trop volumineux ou illisible) sont explicitement signalées.
 
 **Elementor** : diagnostic partiel des widgets Image, Texte, Titre et Bouton (sans réécriture de son JSON).
 **Divi 4** : diagnostic prudent des modules Image dans les shortcodes. **Divi 5** : repérage expérimental de certains blocs natifs, sans revendiquer l'analyse de leurs attributs.
@@ -39,3 +41,5 @@ Non. Le plugin lit certaines données enregistrées et n'écrit ni dans les cont
 * Analyse éditoriale des attributs, titres, liens et champs.
 * Diagnostics Elementor et Divi 4/5, avec périmètre limité.
 * Tableau de bord et panneau d'aide en édition.
+* Contrôle tolérant aux erreurs, progression terminée à 100 % avec couverture précisée.
+* Aide à la médiathèque et validation guidée des images récentes ; anciennes images préservées.

@@ -30,6 +30,14 @@ final class DAA_Admin
         $results = DAA_Scanner::batch();
         $results['scanned_at'] = gmdate('c');
         update_option('daa_last_audit', $results, false);
+        try {
+            $media = DAA_Media::library();
+        } catch (Throwable $error) {
+            $media = array('items' => array(), 'pending' => 0, 'scanned' => 0,
+                'partial' => true, 'scan_error' => true, 'progress' => 100, 'completed' => true);
+        }
+        $media['scanned_at'] = gmdate('c');
+        update_option('daa_last_media_audit', $media, false);
         wp_safe_redirect(admin_url('admin.php?page=dendrila-accessibility-assistant&daa_notice=scanned'));
         exit;
     }
@@ -50,7 +58,12 @@ final class DAA_Admin
             echo '<p>Analyse indisponible.</p>';
             return;
         }
-        $audit = DAA_Scanner::post((int) $post->ID);
+        try {
+            $audit = DAA_Scanner::post((int) $post->ID);
+        } catch (Throwable $error) {
+            echo '<p role="status">Impossible d’examiner ce contenu pour le moment. Vous pouvez continuer à modifier la page normalement.</p>';
+            return;
+        }
         echo '<div class="daa-editor">';
         echo '<p><strong>Diagnostic du dernier contenu enregistré</strong> — les changements non sauvegardés ne sont pas analysés.</p>';
         if (!empty($audit['incomplete'])) {
@@ -90,6 +103,15 @@ final class DAA_Admin
         $last = is_array($last) ? $last : array();
         $rows = is_array($last['posts'] ?? null) ? $last['posts'] : array();
         $checked = (int) ($last['total_checked'] ?? 0);
+        $failed = (int) ($last['failed'] ?? 0);
+        $incomplete = (int) ($last['incomplete'] ?? 0);
+        $media = get_option('daa_last_media_audit', array());
+        $media = is_array($media) ? $media : array();
+        $mediaItems = is_array($media['items'] ?? null) ? $media['items'] : array();
+        $mediaToReview = array_values(array_filter($mediaItems, static fn ($row) =>
+            in_array($row['status'] ?? '', array('pending','needs_review','legacy_missing','error'), true)
+        ));
+        $selected = isset($_GET['daa_media']) ? absint($_GET['daa_media']) : 0;
         $found = array_sum(array_map(static fn($row) => (int) ($row['count'] ?? 0), $rows));
         $affected = count(array_filter($rows, static fn($row) => !empty($row['count'])));
         ?>
@@ -109,7 +131,7 @@ final class DAA_Admin
             </div>
             <section class="daa-panel daa-first">
                 <div><h2>Analyser les contenus publiés</h2>
-                    <p>Parcours local des 100 derniers contenus publics au maximum. Aucune requête extérieure, aucune modification des pages ou des constructeurs.</p>
+                    <p>Examine jusqu’à 100 pages ou articles récents, ainsi que 100 images récentes de la médiathèque. Si un contenu pose problème, l’analyse continue avec les autres.</p>
                     <?php if (!empty($last['scanned_at'])) : ?>
                         <p class="daa-meta">Dernière analyse :
                         <?php echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'),
@@ -123,6 +145,21 @@ final class DAA_Admin
                 </form>
             </section>
             <?php if (!empty($last['scanned_at'])) : ?>
+                <section class="daa-panel" aria-label="Progression de l’analyse">
+                    <h2>Analyse terminée : 100 %</h2>
+                    <progress max="100" value="100" aria-label="Progression de cette analyse">100 %</progress>
+                    <p class="daa-meta">100 % signifie que le travail prévu est fini, même si certaines pages n’ont pas pu être vérifiées. Ce n’est pas le pourcentage de pages accessibles.</p>
+                    <p><strong><?php echo esc_html((string) max(0, $checked - $failed)); ?></strong> contenu(s) examiné(s) sans erreur bloquante,
+                        <strong><?php echo esc_html((string) $failed); ?></strong> échec(s),
+                        <strong><?php echo esc_html((string) $incomplete); ?></strong> analyse(s) partielle(s).
+                        <?php if (!empty($last['partial'])) : ?>
+                            D’autres contenus existent en dehors de cette analyse limitée à 100.
+                        <?php endif; ?>
+                    </p>
+                    <?php if (!empty($last['scan_error'])) : ?>
+                        <p class="daa-caution" role="alert">La liste des pages n’a pas pu être chargée. L’analyse s’est arrêtée proprement : aucune page n’a été vérifiée.</p>
+                    <?php endif; ?>
+                </section>
                 <div class="daa-stats" aria-label="Résumé des observations">
                     <div><strong><?php echo esc_html((string) $checked); ?></strong><span>Contenus analysés</span></div>
                     <div><strong><?php echo esc_html((string) $affected); ?></strong><span>Contenus avec observations</span></div>
@@ -174,7 +211,44 @@ final class DAA_Admin
                     <p>Aucune analyse globale réalisée. Cliquez sur « Analyser maintenant » pour obtenir des pistes de correction, ou ouvrez un contenu dans l’éditeur pour voir son diagnostic local.</p>
                 </section>
             <?php endif; ?>
-            <p class="daa-meta">Le diagnostic d’un article ou d’une page s’affiche aussi dans son panneau « Dendrila · Aide accessibilité ». Pensez à enregistrer vos modifications avant de relancer les contrôles.</p>
+            <?php if ($selected > 0) { DAA_Media::editor($selected); } ?>
+            <section class="daa-panel" id="daa-media">
+                <h2>Médiathèque : images à compléter</h2>
+                <p>Les nouvelles images sont mises « à compléter » après leur import. Pour finir, indiquez si l’image apporte une information ou sert seulement à décorer. Les anciennes images continuent de fonctionner, même sans texte alternatif.</p>
+                <?php if (!empty($media['scanned_at'])) : ?>
+                    <p><strong>Analyse des images terminée : 100 %</strong> — <?php echo esc_html((string) ($media['scanned'] ?? 0)); ?> images examinées,
+                        <?php echo esc_html((string) count($mediaToReview)); ?> à revoir dans cet échantillon.
+                        <?php if (!empty($media['partial'])) : ?>La médiathèque contient d’autres images hors de cet examen limité aux 100 plus récentes.<?php endif; ?>
+                    </p>
+                    <progress max="100" value="100" aria-label="Analyse de la médiathèque terminée">100 %</progress>
+                    <?php if (!empty($media['scan_error'])) : ?>
+                        <p class="daa-caution" role="alert">La liste des images n’a pas pu être chargée. Relancez l’analyse ultérieurement.</p>
+                    <?php elseif (!$mediaToReview) : ?>
+                        <p>Aucune image à compléter dans les 100 plus récentes examinées. Cela ne couvre pas nécessairement toute la médiathèque.</p>
+                    <?php else : ?>
+                        <div class="daa-media-list">
+                        <?php foreach ($mediaToReview as $item) : ?>
+                            <div class="daa-media-item">
+                                <div><strong><?php echo esc_html($item['title'] ?: 'Image sans titre'); ?></strong>
+                                    <p class="daa-meta"><?php echo $item['status'] === 'legacy_missing'
+                                        ? 'Ancienne image : il manque un choix à vérifier'
+                                        : ($item['status'] === 'pending' ? 'Nouvelle image : description à terminer' : 'Informations à revoir'); ?></p></div>
+                                <?php if (current_user_can('edit_post', (int) $item['id'])) : ?>
+                                <a class="button" href="<?php echo esc_url(add_query_arg(array(
+                                    'page' => 'dendrila-accessibility-assistant',
+                                    'daa_media' => (int) $item['id'],
+                                ), admin_url('admin.php')) . '#daa-media-editor'); ?>">Compléter cette image</a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else : ?>
+                    <p>Lancez une analyse pour obtenir la liste des images à compléter.</p>
+                <?php endif; ?>
+                <p class="daa-meta">Le texte alternatif décrit l’information utile de l’image. La légende, visible sous l’image, sert à donner du contexte ou un crédit. Une image uniquement décorative peut avoir un texte alternatif vide : il faut le confirmer volontairement.</p>
+            </section>
+            <p class="daa-meta">Le diagnostic d’une page s’affiche aussi dans son panneau « Dendrila · Aide accessibilité ». Enregistrez vos modifications avant de relancer les contrôles.</p>
         </div>
         <?php
     }

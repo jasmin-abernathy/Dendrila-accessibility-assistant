@@ -7,6 +7,10 @@
 - [x] Aucune écriture dans les constructeurs.
 - [x] Tests PHP 8.1 et 8.3.
 - [x] Signaler distinctement les analyses impossibles ou tronquées, avec limite de traitement Divi.
+- [x] Continuer l'analyse malgré les erreurs d'une page et terminer le passage à 100 %, sans confondre progression et couverture.
+- [x] Aide à la médiathèque, suivi des images manquantes et validation explicite (informative / décorative) ; anciens fichiers non bloqués.
+- [ ] Tester dans les différentes interfaces de la médiathèque et éditeurs Divi / Elementor les textes d’aide ajoutés.
+- [ ] Étendre la validation des nouveaux médias aux autres parcours de sauvegarde, sans casser les imports WordPress et externes.
 - [ ] Essai sur un WordPress pilote réel.
 
 ## Lot 1 — Couverture et fiabilité
