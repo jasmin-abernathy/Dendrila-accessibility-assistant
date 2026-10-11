@@ -20,9 +20,11 @@ define('DAA_DIR', plugin_dir_path(__FILE__));
 require_once DAA_DIR . 'includes/class-daa-analyzer.php';
 require_once DAA_DIR . 'includes/class-daa-builders.php';
 require_once DAA_DIR . 'includes/class-daa-scanner.php';
+require_once DAA_DIR . 'includes/class-daa-media.php';
 require_once DAA_DIR . 'includes/class-daa-admin.php';
 
 add_action('admin_menu', array('DAA_Admin', 'menu'));
 add_action('admin_post_daa_scan', array('DAA_Admin', 'scan'));
 add_action('add_meta_boxes', array('DAA_Admin', 'meta_boxes'));
 add_action('admin_enqueue_scripts', array('DAA_Admin', 'assets'));
+DAA_Media::boot();
