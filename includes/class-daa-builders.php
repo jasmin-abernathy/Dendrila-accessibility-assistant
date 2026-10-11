@@ -15,11 +15,11 @@ final class DAA_Builders
             return array('detected' => false, 'issues' => array(), 'notes' => array());
         }
         if (strlen($raw) > 1500000) {
-            return array('detected' => true, 'issues' => array(), 'notes' => array('Elementor : données trop volumineuses pour cette analyse.'));
+            return array('detected' => true, 'issues' => array(), 'notes' => array('Elementor : données trop volumineuses pour cette analyse.'), 'partial' => true);
         }
         $tree = json_decode($raw, true);
         if (!is_array($tree)) {
-            return array('detected' => true, 'issues' => array(), 'notes' => array('Elementor : structure JSON non lisible.'));
+            return array('detected' => true, 'issues' => array(), 'notes' => array('Elementor : structure JSON non lisible.'), 'partial' => true);
         }
         $issues = array(); $visited = 0;
         $stack = array(array($tree, 0));
@@ -76,12 +76,20 @@ final class DAA_Builders
         }
         $notes = array('Elementor : analyse partielle des widgets Image, Texte, Titre et Bouton. Aucun rendu public calculé.');
         if ($stack) { $notes[] = 'Elementor : analyse bornée à 500 éléments / 18 niveaux.'; }
-        return array('detected' => true, 'issues' => array_slice($issues, 0, 60), 'notes' => $notes);
+        return array('detected' => true, 'issues' => array_slice($issues, 0, 60), 'notes' => $notes, 'partial' => (bool) $stack);
     }
 
     public static function divi(string $content): array
     {
         $issues = array(); $notes = array(); $detected = false;
+        if (strlen($content) > 1500000) {
+            return array(
+                'detected' => str_contains($content, '[et_pb_') || str_contains($content, 'wp:divi/'),
+                'issues' => array(),
+                'notes' => array('Divi : contenu trop volumineux, diagnostic ignoré pour éviter une analyse coûteuse.'),
+                'partial' => true,
+            );
+        }
         // Legacy Divi 4 shortcodes. Missing explicit alt is a manual check because
         // Divi can derive alt through media/theme code: never claim a definite defect.
         if (preg_match_all('/(?<!\[)\[et_pb_image\b([^\]\r\n]{0,1200})\]/i', $content, $matches)) {
@@ -124,7 +132,7 @@ final class DAA_Builders
             $detected = true;
             $notes[] = 'Divi : shortcodes repérés, mais aucun module Image compatible avec les contrôles actuels.';
         }
-        return array('detected' => $detected, 'issues' => array_slice($issues, 0, 35), 'notes' => $notes);
+        return array('detected' => $detected, 'issues' => array_slice($issues, 0, 35), 'notes' => $notes, 'partial' => false);
     }
 
     private static function append(array &$target, array $issues): void

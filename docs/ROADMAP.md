@@ -6,6 +6,7 @@
 - [x] Lectures partielles d'Elementor et Divi 4 ; présence de blocs Divi 5 avec niveau de confiance limité.
 - [x] Aucune écriture dans les constructeurs.
 - [x] Tests PHP 8.1 et 8.3.
+- [x] Signaler distinctement les analyses impossibles ou tronquées, avec limite de traitement Divi.
 - [ ] Essai sur un WordPress pilote réel.
 
 ## Lot 1 — Couverture et fiabilité

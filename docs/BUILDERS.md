@@ -4,7 +4,7 @@ Conformément aux conventions déjà utilisées dans Dendrila Simple Edit, les c
 
 ## Elementor
 
-- Lire la métadonnée `_elementor_data` du contenu actuellement inspecté.
+- Lire la métadonnée `_elementor_data` du contenu actuellement inspecté. Si elle est volumineuse ou illisible, marquer le diagnostic comme incomplet et ne pas annoncer « zéro problème » comme une preuve d'accessibilité.
 - Parcourir en lecture seule `elements` et les widgets au maximum 18 niveaux/500 éléments.
 - Lire uniquement les réglages connus : `widgetType=image` (image ID média et `_wp_attachment_image_alt`), `heading.title`, `text-editor.editor`, `button.text`.
 - Ne pas présenter un média sans alternative comme un échec assuré : il peut être décoratif ou modifié par le rendu. Ne pas considérer un nom de widget comme une preuve de rendu public.
@@ -12,7 +12,7 @@ Conformément aux conventions déjà utilisées dans Dendrila Simple Edit, les c
 
 ## Divi 4
 
-- Les shortcodes `[et_pb_image ...]` sont examinés dans le `post_content` enregistré.
+- Les shortcodes `[et_pb_image ...]` sont examinés dans le `post_content` enregistré, dans la limite de 1,5 Mo ; au-delà, le diagnostic est incomplet.
 - L'absence d'attribut `alt` explicite nécessite une vérification, **pas une correction automatique** : Divi peut utiliser la valeur de la médiathèque.
 - Les modules contact, bouton, blurb, contenus dynamiques et les modèles Divi 4 ne sont pas encore audités.
 

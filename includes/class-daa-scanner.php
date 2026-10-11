@@ -46,6 +46,7 @@ final class DAA_Scanner
         }
         return array(
             'status' => $html['status'],
+            'incomplete' => $html['status'] !== 'ok' || !empty($elementor['partial']) || !empty($divi['partial']),
             'issues' => array_slice($issues, 0, 100),
             'notes' => array_slice($notes, 0, 12),
             'builders' => array('elementor' => $elementor['detected'], 'divi' => $divi['detected']),
@@ -78,6 +79,7 @@ final class DAA_Scanner
                 'count' => count($audit['issues']),
                 'issues' => array_slice($audit['issues'], 0, 8),
                 'status' => $audit['status'],
+                'incomplete' => !empty($audit['incomplete']),
                 'builders' => $audit['builders'] ?? array(),
             );
         }
