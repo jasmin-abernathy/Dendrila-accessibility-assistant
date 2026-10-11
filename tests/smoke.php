@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 define('ABSPATH', __DIR__ . '/');
+// WordPress-function stubs required by the standalone PHP smoke tests.
+function wp_parse_url($url, $component = -1) { return parse_url($url, $component); }
+function wp_strip_all_tags($value) { return strip_tags((string) $value); }
 function verify(bool $ok, string $label): void {
     if (!$ok) { throw new RuntimeException('Échec du test : ' . $label); }
 }
