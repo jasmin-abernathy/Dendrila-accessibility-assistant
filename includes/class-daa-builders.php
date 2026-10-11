@@ -36,7 +36,7 @@ final class DAA_Builders
                 }
                 if ($kind === 'heading') {
                     $title = $settings['title'] ?? null;
-                    if (is_string($title) && trim(strip_tags($title)) === '') {
+                    if (is_string($title) && trim(wp_strip_all_tags($title)) === '') {
                         $issues[] = DAA_Analyzer::issue('elementor_empty_heading', 'review', $source,
                             'Widget titre sans texte visible.', 'Renseigner un titre utile ou supprimer ce widget.');
                     }
@@ -59,7 +59,7 @@ final class DAA_Builders
                     }
                 }
                 if ($kind === 'button' && is_string($settings['text'] ?? null) &&
-                    trim(strip_tags($settings['text'])) === '') {
+                    trim(wp_strip_all_tags($settings['text'])) === '') {
                     $issues[] = DAA_Analyzer::issue('elementor_button_text', 'review', $source,
                         'Bouton sans texte visible dans ses réglages.',
                         'Vérifier le nom accessible du bouton (texte ou libellé ARIA).');

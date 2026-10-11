@@ -131,7 +131,7 @@ final class DAA_Analyzer
     private static function excerpt(string $value): string
     {
         // Avoid storing arbitrary long URLs or query strings in the report.
-        $path = (string) parse_url($value, PHP_URL_PATH);
+        $path = (string) wp_parse_url($value, PHP_URL_PATH);
         return substr(basename($path), 0, 85);
     }
 }
