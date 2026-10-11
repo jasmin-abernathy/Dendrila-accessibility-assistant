@@ -63,6 +63,7 @@ verify(in_array('elementor_image_alt', array_column($e['issues'], 'rule'), true)
 verify(in_array('img_alt', array_column($e['issues'], 'rule'), true), 'texte Elementor HTML analysé');
 verify(in_array('elementor_empty_heading', array_column($e['issues'], 'rule'), true), 'titre Elementor vide');
 verify(DAA_Builders::elementor(101)['detected'] === true, 'JSON Elementor invalide signalé sans fausse assurance');
+verify(DAA_Builders::elementor(101)['partial'] === true, 'structure illisible explicitement incomplète');
 $d4 = DAA_Builders::divi('[et_pb_image src="image.jpg" /]');
 verify($d4['detected'] === true, 'module Divi 4 détecté');
 verify(in_array('divi_image_alt', array_column($d4['issues'], 'rule'), true), 'alt Divi 4 à vérifier');
@@ -74,4 +75,6 @@ verify(count($single['issues']) >= 3, 'post et constructeur cumulés');
 $batch = DAA_Scanner::batch();
 verify($batch['total_checked'] === 2, 'inventaire borné');
 verify(count($batch['posts']) === 2, 'résultats globaux');
+verify(DAA_Scanner::post(101)['incomplete'] === true, 'audit partiel visible');
+verify(DAA_Builders::divi(str_repeat('x', 1500001))['partial'] === true, 'limite de traitement Divi');
 echo "Dendrila Accessibility Assistant : contrats OK\n";

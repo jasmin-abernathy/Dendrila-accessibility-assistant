@@ -12,7 +12,7 @@ Aide à la correction éditoriale d'accessibilité sur WordPress, Elementor et D
 
 Dendrila Accessibility Assistant analyse en lecture seule des contenus WordPress enregistrés et fournit des conseils concrets en français.
 
-La première version détecte certains attributs alt absents, textes alternatifs semblables à des fichiers, champs sans nom accessible apparent, titres vides, sauts de niveaux, et liens/boutons sans libellé. Un panneau dans l'éditeur et un tableau de bord permettent d'ouvrir rapidement les contenus à revoir.
+La première version détecte certains attributs alt absents, textes alternatifs semblables à des fichiers, champs sans nom accessible apparent, titres vides, sauts de niveaux, et liens/boutons sans libellé. Un panneau dans l'éditeur et un tableau de bord permettent d'ouvrir rapidement les contenus à revoir. Les analyses incomplètes (fichier de constructeur trop volumineux ou illisible) sont explicitement signalées.
 
 **Elementor** : diagnostic partiel des widgets Image, Texte, Titre et Bouton (sans réécriture de son JSON).
 **Divi 4** : diagnostic prudent des modules Image dans les shortcodes. **Divi 5** : repérage expérimental de certains blocs natifs, sans revendiquer l'analyse de leurs attributs.

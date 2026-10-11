@@ -53,6 +53,9 @@ final class DAA_Admin
         $audit = DAA_Scanner::post((int) $post->ID);
         echo '<div class="daa-editor">';
         echo '<p><strong>Diagnostic du dernier contenu enregistré</strong> — les changements non sauvegardés ne sont pas analysés.</p>';
+        if (!empty($audit['incomplete'])) {
+            echo '<p class="daa-note" role="status"><strong>Analyse incomplète :</strong> certains éléments n’ont pas pu être examinés. Aucun résultat nul ne doit être interprété comme une validation.</p>';
+        }
         if ($audit['issues']) {
             foreach (array_slice($audit['issues'], 0, 15) as $issue) {
                 self::issue($issue);
@@ -61,7 +64,7 @@ final class DAA_Admin
                 echo '<p>Observations supplémentaires : ouvrez la synthèse ou sauvegardez le contenu et réexaminez-le.</p>';
             }
         } else {
-            echo '<p>Aucune anomalie signalée dans les structures prises en charge. Le rendu réel reste à tester.</p>';
+            echo '<p>Aucune observation détectée dans les éléments examinés. Le rendu réel reste à tester.</p>';
         }
         foreach ($audit['notes'] as $note) {
             echo '<p class="daa-note">' . esc_html($note) . '</p>';
@@ -148,12 +151,18 @@ final class DAA_Admin
                                     </p>
                                 </div><a class="button button-secondary" href="<?php echo esc_url(get_edit_post_link($id, '')); ?>">Ouvrir pour corriger</a></div>
                                 <?php if (empty($row['issues'])) : ?>
+                                    <?php if (!empty($row['incomplete'])) : ?>
+                                    <p class="daa-note" role="status">Analyse incomplète : certains contenus ou réglages du constructeur n’ont pas pu être lus.</p>
+                                    <?php endif; ?>
                                     <p>Aucune observation affichée dans le périmètre analysé ; cela ne garantit pas une page accessible.</p>
                                 <?php else : ?>
                                     <?php foreach ($row['issues'] as $issue) { self::issue($issue); } ?>
                                     <?php if ($row['count'] > count($row['issues'])) : ?>
                                         <p class="daa-note">D’autres observations sont disponibles dans l’éditeur de ce contenu.</p>
                                     <?php endif; ?>
+                                <?php endif; ?>
+                                <?php if (!empty($row['incomplete']) && !empty($row['issues'])) : ?>
+                                    <p class="daa-note" role="status">Analyse partielle : d’autres problèmes peuvent ne pas avoir été repérés.</p>
                                 <?php endif; ?>
                             </article>
                         <?php endforeach; ?>

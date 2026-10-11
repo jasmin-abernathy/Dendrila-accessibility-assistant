@@ -10,11 +10,11 @@ Extension WordPress libre qui aide à **repérer et corriger** certains problèm
 - **Elementor** : lecture seule des widgets Image, Texte, Titre et Bouton dans `_elementor_data`; vérification prudente de l'alternative des images liées à la médiathèque WordPress. Pas de modification du JSON.
 - **Divi 4** : repérage des modules Image via `et_pb_image` et indication de l'absence d'alternative **explicite** comme élément à vérifier, pas comme défaut confirmé.
 - **Divi 5** : identification exploratoire de blocs de namespace Divi dans `parse_blocks()`, sans supposer la structure de leurs attributs ni revendiquer l'analyse de leurs modules.
-- Diagnostic directement dans un panneau de l'éditeur WordPress (sur le **dernier enregistrement**, pas sur les changements en cours).
+- Diagnostic directement dans un panneau de l'éditeur WordPress (sur le **dernier enregistrement**, pas sur les changements en cours). Une analyse limitée ou illisible est explicitement signalée, jamais assimilée à un résultat sain.
 - Tableau de bord : analyse volontaire des 100 contenus publics publiés les plus récents, liens pour corriger, observations avec explications en français.
 - Aucun service tiers, aucune requête HTTP extérieure, aucune modification automatique de contenu, aucun nouveau rôle.
 
-Les résultats sont des **observations**, pas un score de conformité. L'absence d'observations ne signifie pas « page accessible » ; le thème, les CSS, les contenus dynamiques, les interactions clavier, les lecteurs d'écran, les contrastes réellement calculés et les pages finales doivent être audités séparément.
+Les résultats sont des **observations**, pas un score de conformité. Les gros contenus Divi (plus de 1,5 Mo), les JSON Elementor illisibles et les fragments HTML inanalysables sont marqués comme analyses incomplètes. L'absence d'observations ne signifie pas « page accessible » ; le thème, les CSS, les contenus dynamiques, les interactions clavier, les lecteurs d'écran, les contrastes réellement calculés et les pages finales doivent être audités séparément.
 
 ## Installer sur un WordPress de test
 
@@ -32,6 +32,8 @@ WordPress 6.5+ et PHP 8.1+ (extension DOM/XML requise pour l'analyse HTML).
 ## Développement
 
 Exécuter `php tests/smoke.php` avec DOM/XML, puis `find . -name '*.php' -print0 | xargs -0 -n1 php -l`. La CI vérifie PHP 8.1 et 8.3. Les tests isolés ne remplacent pas une installation WordPress.
+
+Avant de rendre le dépôt public, consulter [docs/PUBLICATION.md](docs/PUBLICATION.md) et [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Lire [docs/BUILDERS.md](docs/BUILDERS.md), [docs/ROADMAP.md](docs/ROADMAP.md), [SECURITY.md](SECURITY.md).
 
