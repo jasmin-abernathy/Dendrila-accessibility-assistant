@@ -66,7 +66,7 @@ final class DAA_Scanner
                 'post_type' => $types, 'post_status' => 'publish',
                 'numberposts' => self::MAX_POSTS + 1,
                 'orderby' => 'ID', 'order' => 'DESC',
-                'fields' => 'ids', 'suppress_filters' => true,
+                'fields' => 'ids',
             ));
         } catch (Throwable $error) {
             return array(
