@@ -60,7 +60,7 @@ final class DAA_Media
             'post_status' => 'inherit',
             'numberposts' => self::MAX_MEDIA + 1,
             'orderby' => 'ID', 'order' => 'DESC',
-            'fields' => 'ids', 'suppress_filters' => true,
+            'fields' => 'ids',
         ));
         if (!is_array($ids)) {
             throw new RuntimeException('La médiathèque ne peut pas être parcourue.');

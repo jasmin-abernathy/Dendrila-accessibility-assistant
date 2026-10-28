@@ -31,6 +31,10 @@ WordPress 6.5+ et PHP 8.1+ (extension DOM/XML requise pour l'analyse HTML).
 5. Corriger dans l'éditeur ou dans le constructeur concerné, enregistrer puis relancer l'analyse. Dans la section **Médiathèque : images à compléter**, choisir une image, préciser son rôle, puis valider son texte alternatif. Les anciennes images ne sont pas bloquées.
 6. Vérifier le rendu réellement publié et l'utilisation au clavier et avec les aides techniques.
 
+La fabrication du ZIP de test dépend des contrôles PHP, **pas** de la conformité des métadonnées à WordPress.org. Le workflow indépendant « WordPress Plugin Check » vérifie les règles de publication et peut rester en échec tant que la version est expérimentale. Cela ne signifie pas que le ZIP est prêt pour la production.
+
+Voir le [protocole de test pilote](docs/TEST-PILOTE.md) avant d'annoncer une compatibilité réelle avec un constructeur.
+
 **Ne pas installer d'abord en production.** Tester les versions spécifiques de Divi 4/5 et Elementor sur un pilote, notamment les modules natifs, les modèles globaux et la mise en cache.
 
 ## Développement

@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 define('ABSPATH', __DIR__ . '/');
+// WordPress-function stubs required by the standalone PHP smoke tests.
+function wp_parse_url($url, $component = -1) { return parse_url($url, $component); }
+function wp_strip_all_tags($value) { return strip_tags((string) $value); }
 function verify(bool $ok, string $label): void {
     if (!$ok) { throw new RuntimeException('Échec du test : ' . $label); }
 }
@@ -87,4 +90,43 @@ verify(count($resilient['posts']) === 2 &&
     count(array_filter($resilient['posts'], static fn($row) => $row['status'] === 'ok')) === 1,
     'le contenu suivant reste analysé');
 unset($GLOBALS['throw_post']);
+
+// Aucune observation perdue silencieusement quand la limite est atteinte.
+$tooMany = DAA_Analyzer::analyze(str_repeat('<img src="a.jpg">', DAA_Analyzer::MAX_ISSUES + 2));
+verify($tooMany['status'] === 'limited', 'limite HTML explicitement signalée');
+verify(count($tooMany['issues']) === DAA_Analyzer::MAX_ISSUES, 'observations HTML conservées jusque la limite');
+$GLOBALS['posts'][102] = (object) array('ID' => 102,
+    'post_content' => str_repeat('<img src="a.jpg">', DAA_Analyzer::MAX_ISSUES + 2));
+$limitedPost = DAA_Scanner::post(102);
+verify($limitedPost['status'] === 'limited' && $limitedPost['incomplete'],
+    'la page à trop nombreuses observations reste incomplète');
+verify(count($limitedPost['issues']) === DAA_Analyzer::MAX_ISSUES,
+    'les observations déjà trouvées ne disparaissent pas');
+$limitedBatch = DAA_Scanner::batch();
+verify($limitedBatch['failed'] === 0 && $limitedBatch['incomplete'] >= 1,
+    'la limite de détails ne compte pas comme une erreur fatale et le passage continue');
+unset($GLOBALS['posts'][102]);
+
+// Elementor : un widget de texte trop long doit rendre le contrôle incomplet.
+$GLOBALS['meta'][103] = array('_elementor_data' => json_encode(array(
+    array('elType' => 'widget', 'widgetType' => 'text-editor',
+        'settings' => array('editor' => str_repeat('Texte ', DAA_Analyzer::MAX_BYTES)))
+)));
+$oversizedWidget = DAA_Builders::elementor(103);
+verify($oversizedWidget['detected'] && $oversizedWidget['partial'],
+    'widget HTML trop long signalé incomplet');
+verify(str_contains(implode(' ', $oversizedWidget['notes']), 'trop long'),
+    'note claire pour le widget texte ignoré');
+
+// Elementor : ne pas ignorer silencieusement les éléments au-delà du niveau 18.
+$deep = array('elType' => 'widget', 'widgetType' => 'heading',
+    'settings' => array('title' => 'Titre profond'));
+for ($level = 0; $level < 20; ++$level) {
+    $deep = array('elType' => 'container', 'elements' => array($deep));
+}
+$GLOBALS['meta'][104] = array('_elementor_data' => json_encode(array($deep)));
+verify(DAA_Builders::elementor(104)['partial'] === true,
+    'arborescence Elementor trop profonde signalée incomplète');
+unset($GLOBALS['meta'][103], $GLOBALS['meta'][104]);
+
 echo "Dendrila Accessibility Assistant : contrats OK\n";

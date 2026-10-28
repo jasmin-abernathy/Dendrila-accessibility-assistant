@@ -22,21 +22,38 @@ final class DAA_Builders
             return array('detected' => true, 'issues' => array(), 'notes' => array('Elementor : structure JSON non lisible.'), 'partial' => true);
         }
         $issues = array(); $visited = 0;
+        $notes = array();
+        $partial = false;
         $stack = array(array($tree, 0));
         while ($stack && $visited < 500 && count($issues) < 60) {
             [$nodes, $depth] = array_pop($stack);
-            if (!is_array($nodes) || $depth > 18) { continue; }
+            if (!is_array($nodes)) { continue; }
+            if ($depth > 18) {
+                $partial = true;
+                continue;
+            }
             ++$visited;
             if (isset($nodes['widgetType']) && is_string($nodes['widgetType'])) {
                 $kind = $nodes['widgetType'];
                 $settings = is_array($nodes['settings'] ?? null) ? $nodes['settings'] : array();
                 $source = 'Elementor · ' . $kind;
                 if ($kind === 'text-editor' && is_string($settings['editor'] ?? null)) {
-                    self::append($issues, DAA_Analyzer::analyze($settings['editor'], $source)['issues']);
+                    $fragment = DAA_Analyzer::analyze($settings['editor'], $source);
+                    self::append($issues, $fragment['issues']);
+                    if ($fragment['status'] !== 'ok') {
+                        $partial = true;
+                        $reason = match ($fragment['status']) {
+                            'too_large' => 'texte trop long pour ce contrôle',
+                            'limited' => 'trop d’observations pour tout afficher',
+                            'unsupported' => 'analyse HTML indisponible',
+                            default => 'contenu HTML non lisible',
+                        };
+                        $notes[] = $source . ' : ' . $reason . '. Vérifier ce widget dans l’éditeur.';
+                    }
                 }
                 if ($kind === 'heading') {
                     $title = $settings['title'] ?? null;
-                    if (is_string($title) && trim(strip_tags($title)) === '') {
+                    if (is_string($title) && trim(wp_strip_all_tags($title)) === '') {
                         $issues[] = DAA_Analyzer::issue('elementor_empty_heading', 'review', $source,
                             'Widget titre sans texte visible.', 'Renseigner un titre utile ou supprimer ce widget.');
                     }
@@ -59,7 +76,7 @@ final class DAA_Builders
                     }
                 }
                 if ($kind === 'button' && is_string($settings['text'] ?? null) &&
-                    trim(strip_tags($settings['text'])) === '') {
+                    trim(wp_strip_all_tags($settings['text'])) === '') {
                     $issues[] = DAA_Analyzer::issue('elementor_button_text', 'review', $source,
                         'Bouton sans texte visible dans ses réglages.',
                         'Vérifier le nom accessible du bouton (texte ou libellé ARIA).');
@@ -74,9 +91,12 @@ final class DAA_Builders
                 }
             }
         }
-        $notes = array('Elementor : analyse partielle des widgets Image, Texte, Titre et Bouton. Aucun rendu public calculé.');
-        if ($stack) { $notes[] = 'Elementor : analyse bornée à 500 éléments / 18 niveaux.'; }
-        return array('detected' => true, 'issues' => array_slice($issues, 0, 60), 'notes' => $notes, 'partial' => (bool) $stack);
+        array_unshift($notes, 'Elementor : seuls certains réglages des widgets Image, Texte, Titre et Bouton sont examinés. Aucun rendu public calculé.');
+        if ($stack || $partial || count($issues) >= 60) {
+            $notes[] = 'Elementor : l’analyse est incomplète (taille du texte, observations, profondeur ou nombre d’éléments limités).';
+        }
+        return array('detected' => true, 'issues' => array_slice($issues, 0, 60),
+            'notes' => array_slice($notes, 0, 12), 'partial' => $partial || (bool) $stack || count($issues) >= 60);
     }
 
     public static function divi(string $content): array

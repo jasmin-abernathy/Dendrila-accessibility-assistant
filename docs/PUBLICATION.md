@@ -14,7 +14,8 @@
 - [ ] Vérifier chaque fonction annoncée sur des pages réelles, au clavier, sur mobile et avec un lecteur d'écran.
 - [ ] Tester les interactions avec l'hébergement, le cache, les constructeurs de pages et leurs versions ciblées.
 - [ ] Auditer les permissions, les nonces, le stockage et les protections contre les abus.
-- [ ] Exécuter WordPress Plugin Check et les contrôles éditoriaux du répertoire.
+- [x] Intégrer WordPress Plugin Check à une CI indépendante des ZIP de test, sans effacer les problèmes de métadonnées.
+- [ ] Obtenir un résultat Plugin Check acceptable pour la publication dans le répertoire WordPress.org.
 - [ ] Revoir `readme.txt` (section principale `Description`) pour rendre visibles les fonctionnalités effectivement disponibles avant chaque nouvelle version.
 - [ ] Préparer la procédure de support, de correction et de déploiement de sécurité.
 

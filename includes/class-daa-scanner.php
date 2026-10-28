@@ -20,10 +20,15 @@ final class DAA_Scanner
         // Embedded HTML only: Gutenberg shortcode and render-time dynamic blocks are
         // not interpreted as full pages. This may miss builder/theme generated markup.
         $html = DAA_Analyzer::analyze($content);
-        if ($html['status'] === 'ok') {
+        if (in_array($html['status'], array('ok', 'limited'), true)) {
+            // Conserver les observations trouvées même si la limite d'affichage
+            // est atteinte ; signaler séparément la couverture incomplète.
             $issues = $html['issues'];
+            if ($html['status'] === 'limited') {
+                $notes[] = 'Contenu WordPress : trop d’observations pour tout afficher. Le résultat est incomplet ; corrigez puis relancez l’analyse.';
+            }
         } else {
-            $notes[] = 'Contenu WordPress : analyse ' . $html['status'] . ', aucun verdict possible.';
+            $notes[] = 'Contenu WordPress : une partie du texte n’a pas pu être examinée. Aucun verdict possible.';
         }
         $elementor = DAA_Builders::elementor($id);
         if ($elementor['detected']) {
@@ -66,7 +71,7 @@ final class DAA_Scanner
                 'post_type' => $types, 'post_status' => 'publish',
                 'numberposts' => self::MAX_POSTS + 1,
                 'orderby' => 'ID', 'order' => 'DESC',
-                'fields' => 'ids', 'suppress_filters' => true,
+                'fields' => 'ids',
             ));
         } catch (Throwable $error) {
             return array(
@@ -91,7 +96,7 @@ final class DAA_Scanner
             $id = (int) $id;
             try {
                 $audit = self::post($id);
-                if (!in_array($audit['status'] ?? '', array('ok', 'too_large', 'unreadable', 'unsupported'), true)) {
+                if (!in_array($audit['status'] ?? '', array('ok', 'limited', 'too_large', 'unreadable', 'unsupported'), true)) {
                     throw new RuntimeException('Contenu non disponible.');
                 }
                 if (!empty($audit['incomplete'])) { ++$incomplete; }
