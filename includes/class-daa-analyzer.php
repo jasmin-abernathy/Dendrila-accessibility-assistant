@@ -46,9 +46,14 @@ final class DAA_Analyzer
             return array('status' => 'unreadable', 'issues' => array());
         }
         $issues = array();
-        $add = static function (array $issue) use (&$issues): void {
+        $truncated = false;
+        $add = static function (array $issue) use (&$issues, &$truncated): void {
             if (count($issues) < self::MAX_ISSUES) {
                 $issues[] = $issue;
+            } else {
+                // L'analyse continue, mais il faut signaler que toutes les
+                // observations n'ont pas pu être affichées.
+                $truncated = true;
             }
         };
         foreach ($xpath->query('.//img', $root) as $image) {
@@ -125,7 +130,7 @@ final class DAA_Analyzer
             }
             $lastHeading = $level;
         }
-        return array('status' => 'ok', 'issues' => $issues);
+        return array('status' => $truncated ? 'limited' : 'ok', 'issues' => $issues);
     }
 
     private static function excerpt(string $value): string
