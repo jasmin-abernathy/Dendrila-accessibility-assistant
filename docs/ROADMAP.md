@@ -11,6 +11,8 @@
 - [x] Aide à la médiathèque, suivi des images manquantes et validation explicite (informative / décorative) ; anciens fichiers non bloqués.
 - [ ] Tester dans les différentes interfaces de la médiathèque et éditeurs Divi / Elementor les textes d’aide ajoutés.
 - [ ] Étendre la validation des nouveaux médias aux autres parcours de sauvegarde, sans casser les imports WordPress et externes.
+- [x] Préparer le [protocole d'essai pilote](TEST-PILOTE.md) et les cas limites du scanner.
+- [x] Signaler la troncature des observations HTML et les fragments Elementor trop longs ou trop profonds.
 - [ ] Essai sur un WordPress pilote réel.
 
 ## Lot 1 — Couverture et fiabilité
