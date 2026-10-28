@@ -3,13 +3,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+# Le ZIP alpha sert aux essais WordPress. Il exige les tests PHP,
+# mais pas la conformité administrative WordPress.org (vérifiée séparément
+# par plugin-check.yml avant toute publication dans le répertoire).
 jobs:
-  wordpress-check:
-    uses: ./.github/workflows/plugin-check.yml
-    permissions:
-      contents: read
   zip:
-    needs: wordpress-check
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
